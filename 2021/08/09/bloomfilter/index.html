@@ -22,7 +22,7 @@
 
   <meta name="description" content="Bloom Filter概念、原理、算法实现一、概念1.1 Bloom Filter是什么?Bloom Filter是一种空间效率很高的随机数据结构，它的原理是，当一个元素被加入集合时，通过$K$​个Hash函数将这个元素映射成一个位阵列（Bit array）中的$K$个点，把它们置为$1$。检索时，我们只要看看这些点是不是都是$1$就（大约）知道集合中有没有它了：如果这些点有任何一个$0$​​​">
 <meta property="og:type" content="article">
-<meta property="og:title" content="bloomfilter">
+<meta property="og:title" content="Bloom Filter概念、原理、算法实现">
 <meta property="og:url" content="http://example.com/2021/08/09/bloomfilter/index.html">
 <meta property="og:site_name" content="LystarmyNZT">
 <meta property="og:description" content="Bloom Filter概念、原理、算法实现一、概念1.1 Bloom Filter是什么?Bloom Filter是一种空间效率很高的随机数据结构，它的原理是，当一个元素被加入集合时，通过$K$​个Hash函数将这个元素映射成一个位阵列（Bit array）中的$K$个点，把它们置为$1$。检索时，我们只要看看这些点是不是都是$1$就（大约）知道集合中有没有它了：如果这些点有任何一个$0$​​​">
@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/3.png?raw=true">
 <meta property="og:image" content="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/4.png?raw=true">
 <meta property="article:published_time" content="2021-08-09T03:32:14.000Z">
-<meta property="article:modified_time" content="2021-08-09T03:38:59.878Z">
+<meta property="article:modified_time" content="2021-08-09T03:52:36.812Z">
 <meta property="article:author" content="Liu Yan">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/1.png?raw=true">
@@ -50,7 +50,7 @@
   };
 </script>
 
-  <title>bloomfilter | LystarmyNZT</title>
+  <title>Bloom Filter概念、原理、算法实现 | LystarmyNZT</title>
   
 
 
@@ -174,7 +174,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          bloomfilter
+          Bloom Filter概念、原理、算法实现
         </h1>
 
         <div class="post-meta">
@@ -185,7 +185,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-08-09 11:32:14 / 修改时间：11:38:59" itemprop="dateCreated datePublished" datetime="2021-08-09T11:32:14+08:00">2021-08-09</time>
+              <time title="创建时间：2021-08-09 11:32:14 / 修改时间：11:52:36" itemprop="dateCreated datePublished" datetime="2021-08-09T11:32:14+08:00">2021-08-09</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -212,38 +212,50 @@
 <p>Bloom Filter的这种高效是有一定代价的：在判断一个元素是否属于某个集合时，有可能会把不属于这个集合的元素误认为属于这个集合（false positive）。因此，Bloom Filter​不适合那些“零错误”的应用场合。而在能容忍低错误率的应用场合下，Bloom Filter通过极少的错误换取了存储空间的极大节省。</p>
 <h3 id="1-2-集合表示和元素查询"><a href="#1-2-集合表示和元素查询" class="headerlink" title="1.2 集合表示和元素查询"></a>1.2 集合表示和元素查询</h3><p>我们具体来看Bloom Filter是如何用位数组表示集合的。</p>
 <p>初始状态时，Bloom Filter是一个包含$m$位的位数组，每一位都置为$0$。</p>
-<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/1.png?raw=true"></p>
+<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/1.png?raw=true" alt=""></p>
 <p>为了表达$S={x_1, x_2,\dots,x_n}$​​​​​​​这样一个$n$个元素的集合，Bloom Filter使用$k$个相互独立的哈希函数（Hash Function），它们分别将集合中的每个元素映射到${1,…,m}$的范围中。对任意一个元素$x$，第$i$个哈希函数映射的位置$h_i(x)$就会被置为$1(1≤i≤k)$。注意，如果一个位置多次被置为$1$，那么只有第一次会起作用，后面几次将没有任何效果。在下图中，$k=3$，且有两个哈希函数选中同一个位置（从左边数第五位，即第二个“$1$​​​​​“处）。</p>
-<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/2.png?raw=true"></p>
+<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/2.png?raw=true" alt=""></p>
 <p>在判断$y$​​​​是否属于这个集合时，我们对$y$​​​应用$k$​​​次哈希函数，如果所有$h_i(y)$​​​​的位置都是$1(1≤i≤k)$​​​，那么我们就认为$y$​​​是集合中的元素，否则就认为$y$​​​不是集合中的元素。下图中$y_1$​​​就不是集合中的元素（因为$y_1$​​​有一处指向了“$0$”位）。$y_2$或者属于这个集合，或者刚好是一个$false\ positive$​​。</p>
-<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/3.png?raw=true"></p>
-<h3 id="1-3-错误率估计"><a href="#1-3-错误率估计" class="headerlink" title="1.3 错误率估计"></a>1.3 错误率估计</h3><p>前面我们已经提到了，Bloom Filter在判断一个元素是否属于它表示的集合时会有一定的错误率（false positive rate），下面我们就来估计错误率的大小。在估计之前为了简化模型，我们假设$kn&lt;m$​且各个哈希函数是完全随机的。当集合$S={x_1, x_2,\dots,x_n}$​​的所有元素都被$k$​个哈希函数映射到$m$​​位的位数组中时，这个位数组中某一位还是$0$​的概率是：<br>$$<br>p^\prime=(1-\frac{1}{x})^{kn}\approx e^{-kn/m}<br>$$<br>其中$\frac{1}{m}$表示任意一个哈希函数选中这一位的概率（前提是哈希函数是完全随机的），$(1-\frac{1}{m})$表示哈希一次没有选中这一位的概率。要把$S$完全映射到位数组中，需要做$kn$次哈希。某一位还是$0$意味着$kn$次哈希都没有选中它，因此这个概率就是$(1-\frac{1}{m})$的$kn$次方。令$p = e-kn/m$​是为了简化运算，这里用到了计算$e$时常用的近似：<br>$$<br>\lim\limits_{x\rightarrow\infty}(1-\frac{1}{x})^{-x}=e<br>$$<br>令$\rho$为位数组中$0$的比例，则$ρ$的数学期望$E(\rho)=p^\prime$。在$\rho$已知的情况下，要求的错误率（false positive rate）为：<br>$$<br>(1-\rho)^k\approx(1-p^\prime)^k\approx(1-p)^k<br>$$<br>$(1-\rho)$​为位数组中$1$​的比例，$(1-\rho)k$​就表示$k$​次哈希都刚好选中$1$​的区域，即false positive rate。上式中第二步近似在前面已经提到了，现在来看第一步近似。$p’$​只是$\rho$​的数学期望，在实际中$\rho$​的值有可能偏离它的数学期望值。M. Mitzenmacher已经证明$^{[2]}$​，位数组中$0$​的比例非常集中地分布在它的数学期望值的附近。因此，第一步的近似得以成立。分别将$p$​和$p’$​代入上式中，得：<br>$$<br>f^\prime=(1-(1-\frac{1}{m})^{kn})^k=(1-p^\prime)^k<br>\<br>\<br>f=(1-e^{-kn/m})^k=(1-p)^k<br>$$<br>相比$p^\prime$和$f^\prime$，使用$p$和$f$通常在分析中更为方便。</p>
+<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/3.png?raw=true" alt=""></p>
+<h3 id="1-3-错误率估计"><a href="#1-3-错误率估计" class="headerlink" title="1.3 错误率估计"></a>1.3 错误率估计</h3><p>前面我们已经提到了，Bloom Filter在判断一个元素是否属于它表示的集合时会有一定的错误率（false positive rate），下面我们就来估计错误率的大小。在估计之前为了简化模型，我们假设$kn&lt;m$​且各个哈希函数是完全随机的。当集合$S={x_1, x_2,\dots,x_n}$​​的所有元素都被$k$​个哈希函数映射到$m$​​位的位数组中时，这个位数组中某一位还是$0$​的概率是：</p>
+<script type="math/tex; mode=display">
+p^\prime=(1-\frac{1}{x})^{kn}\approx e^{-kn/m}</script><p>其中$\frac{1}{m}$表示任意一个哈希函数选中这一位的概率（前提是哈希函数是完全随机的），$(1-\frac{1}{m})$表示哈希一次没有选中这一位的概率。要把$S$完全映射到位数组中，需要做$kn$次哈希。某一位还是$0$意味着$kn$次哈希都没有选中它，因此这个概率就是$(1-\frac{1}{m})$的$kn$次方。令$p = e-kn/m$​是为了简化运算，这里用到了计算$e$时常用的近似：</p>
+<script type="math/tex; mode=display">
+\lim\limits_{x\rightarrow\infty}(1-\frac{1}{x})^{-x}=e</script><p>令$\rho$为位数组中$0$的比例，则$ρ$的数学期望$E(\rho)=p^\prime$。在$\rho$已知的情况下，要求的错误率（false positive rate）为：</p>
+<script type="math/tex; mode=display">
+(1-\rho)^k\approx(1-p^\prime)^k\approx(1-p)^k</script><p>$(1-\rho)$​为位数组中$1$​的比例，$(1-\rho)k$​就表示$k$​次哈希都刚好选中$1$​的区域，即false positive rate。上式中第二步近似在前面已经提到了，现在来看第一步近似。$p’$​只是$\rho$​的数学期望，在实际中$\rho$​的值有可能偏离它的数学期望值。M. Mitzenmacher已经证明$^{[2]}$​，位数组中$0$​的比例非常集中地分布在它的数学期望值的附近。因此，第一步的近似得以成立。分别将$p$​和$p’$​代入上式中，得：</p>
+<script type="math/tex; mode=display">
+f^\prime=(1-(1-\frac{1}{m})^{kn})^k=(1-p^\prime)^k 
+\\
+\\
+f=(1-e^{-kn/m})^k=(1-p)^k</script><p>相比$p^\prime$和$f^\prime$，使用$p$和$f$通常在分析中更为方便。</p>
 <h3 id="1-4-最优的哈希函数个数"><a href="#1-4-最优的哈希函数个数" class="headerlink" title="1.4 最优的哈希函数个数"></a>1.4 最优的哈希函数个数</h3><p>既然Bloom Filter要靠多个哈希函数将集合映射到位数组中，那么应该选择几个哈希函数才能使元素查询时的错误率降到最低呢？这里有两个互斥的理由</p>
 <ul>
 <li>如果哈希函数的个数多，那么在对一个不属于集合的元素进行查询时得到0的概率就大；</li>
 <li>但另一方面，如果哈希函数的个数少，那么位数组中的0就多。为了得到最优的哈希函数个数，我们需要根据上一小节中的错误率公式进行计算。</li>
 </ul>
 <p>先用$p$​​​和$f$​​​进行计算。注意到$f = e^{(k\ ln(1 − e^{−kn/m}))}$​​​，我们令$g =k\ ln(1 − e^{−kn/m})$​​​，只要让$g$​​取到最小，$f$​​​自然也取到最小。由于$p = e^{-kn/m}$​​，我们可以将$g$​写成</p>
-<p>$$<br>g=-\frac{m}{n}ln(p)\ ln(1-p)<br>$$</p>
-<p>根据对称性法则可以很容易看出当$p = 1/2$​，也就是$k = ln2· (m/n)$​时，$g$​取得最小值。在这种情况下，最小错误率$f$​等于$(1/2)^k ≈ (0.6185)^{m/n}$​。另外，注意到$p$是位数组中某一位仍是0的概率，所以$p = 1/2$​对应着位数组中$0$和$1$各一半。换句话说，要想保持错误率低，最好让位数组有一半还空着。</p>
+<script type="math/tex; mode=display">
+g=-\frac{m}{n}ln(p)\ ln(1-p)</script><p>根据对称性法则可以很容易看出当$p = 1/2$​，也就是$k = ln2· (m/n)$​时，$g$​取得最小值。在这种情况下，最小错误率$f$​等于$(1/2)^k ≈ (0.6185)^{m/n}$​。另外，注意到$p$是位数组中某一位仍是0的概率，所以$p = 1/2$​对应着位数组中$0$和$1$各一半。换句话说，要想保持错误率低，最好让位数组有一半还空着。</p>
 <p>需要强调的一点是，$p = 1/2$​​​​​​​时错误率最小这个结果并不依赖于近似值$p$和$f$。同样对于$f’ = e^{(k\ ln(1 − (1 − 1/m)^{kn}))}$，$g’ = k\ ln(1 − (1 − 1/m)^{kn})$，$p’ = (1 − 1/m)^{kn}$，我们可以将$g’$​​​​写成</p>
-<p>$$<br>g^\prime=\frac{1}{n\ ln(1-1/m)}ln(p^\prime)\ ln(1-p^\prime)<br>$$</p>
-<p>同样根据对称性法则可以得到当$p’ = 1/2$时，$g’$取得最小值。</p>
+<script type="math/tex; mode=display">
+g^\prime=\frac{1}{n\ ln(1-1/m)}ln(p^\prime)\ ln(1-p^\prime)</script><p>同样根据对称性法则可以得到当$p’ = 1/2$时，$g’$取得最小值。</p>
 <h3 id="1-5-位数组的大小"><a href="#1-5-位数组的大小" class="headerlink" title="1.5 位数组的大小"></a>1.5 位数组的大小</h3><p>下面我们来看看，在不超过一定错误率的情况下，Bloom Filter至少需要多少位才能表示全集中任意$n$​​个元素的集合。假设全集中共有$\upsilon$个元素，允许的最大错误率为$\epsilon$​​，下面我们来求位数组的位数m。</p>
 <p>假设$X$为全集中任取$n$个元素的集合，$F(X)$是表示$X$的位数组。那么对于集合$X$中任意一个元素$x$，在$s = F(X)$中查询$x$都能得到肯定的结果，即$s$能够接受$x$。显然，由于Bloom Filter引入了错误，$s$能够接受的不仅仅是$X$中的元素，它还能够$\epsilon\ (\upsilon - n)$个false positive。因此，对于一个确定的位数组来说，它能够接受总共$n + \epsilon\ (\upsilon - n))$个元素。在$n + \epsilon\ (\upsilon - n))$​个元素中，$s$真正表示的只有其中$n$个，所以一个确定的位数组可以表示</p>
-<p>$$<br>\begin{pmatrix}n + \epsilon\ (\upsilon - n))\ n\end{pmatrix}<br>$$</p>
-<p>个集合。$m$​位的位数组共有$2^m$​​个不同的组合，进而可以推出，$m$​位的位数组可以表示</p>
-<p>$$<br>2^m\ \begin{pmatrix}n + \epsilon\ (\upsilon - n))\ n\end{pmatrix}<br>$$</p>
-<p>个集合。全集中$n$个元素的集合总共有</p>
-<p>$$<br>\begin{pmatrix}\upsilon\ n\end{pmatrix}<br>$$</p>
-<p>个，因此要让$m$位的位数组能够表示所有$n$个元素的集合，必须有</p>
-<p>$$<br>2^m\ \begin{pmatrix}n + \epsilon\ (\upsilon - n))\ n\end{pmatrix}\ge \begin{pmatrix}\upsilon\ n\end{pmatrix}<br>$$<br>即：</p>
-<p>$$<br>m\ge log_2\frac{\begin{pmatrix}\upsilon\ n\end{pmatrix}}{\begin{pmatrix}n + \epsilon\ (\upsilon - n))\ n\end{pmatrix}}\approx log_2\frac{\begin{pmatrix}\upsilon\ n\end{pmatrix}}{\begin{pmatrix}\epsilon\ \upsilon \ n\end{pmatrix}}= n\cdot log_2(1/\epsilon)<br>$$</p>
-<p>上式中的近似前提是$n$​和$\epsilon\upsilon$​相比很小，这也是实际情况中常常发生的。根据上式，我们得出结论：在错误率不大于$\epsilon$​的情况下，$m$​至少要等于$n\ log_2(1/є)$才能表示任意$n$个元素的集合。</p>
+<script type="math/tex; mode=display">
+\begin{pmatrix}n + \epsilon\ (\upsilon - n))\\ n\end{pmatrix}</script><p>个集合。$m$​位的位数组共有$2^m$​​个不同的组合，进而可以推出，$m$​位的位数组可以表示</p>
+<script type="math/tex; mode=display">
+2^m\ \begin{pmatrix}n + \epsilon\ (\upsilon - n))\\ n\end{pmatrix}</script><p>个集合。全集中$n$个元素的集合总共有</p>
+<script type="math/tex; mode=display">
+\begin{pmatrix}\upsilon\\ n\end{pmatrix}</script><p>个，因此要让$m$位的位数组能够表示所有$n$个元素的集合，必须有</p>
+<script type="math/tex; mode=display">
+2^m\ \begin{pmatrix}n + \epsilon\ (\upsilon - n))\\ n\end{pmatrix}\ge \begin{pmatrix}\upsilon\\ n\end{pmatrix}</script><p>即：</p>
+<script type="math/tex; mode=display">
+m\ge log_2\frac{\begin{pmatrix}\upsilon\\ n\end{pmatrix}}{\begin{pmatrix}n + \epsilon\ (\upsilon - n))\\ n\end{pmatrix}}\approx log_2\frac{\begin{pmatrix}\upsilon\\ n\end{pmatrix}}{\begin{pmatrix}\epsilon\ \upsilon \\ n\end{pmatrix}}= n\cdot log_2(1/\epsilon)</script><p>上式中的近似前提是$n$​和$\epsilon\upsilon$​相比很小，这也是实际情况中常常发生的。根据上式，我们得出结论：在错误率不大于$\epsilon$​的情况下，$m$​至少要等于$n\ log_2(1/є)$才能表示任意$n$个元素的集合。</p>
 <p>上一小节中我们曾算出当$k = ln_2\cdot(m/n)$时错误率$f$最小，这时$f = (1/2)^k = (1/2)^{m\ ln2/n}$。现在令$f\le\epsilon$，可以推出</p>
-<p>$$<br>m\ge n\ \frac{log_2(1/\epsilon)}{ln 2}=n\ log_2e\cdot log_2(1/\epsilon)<br>$$</p>
-<p>这个结果比前面我们算得的下界$n log_2(1/є)$大了$log_2e \approx 1.44$倍。这说明在哈希函数的个数取到最优时，要让错误率不超过$є$，$m$至少需要取到最小值的$1.44$倍。</p>
-<h3 id="1-6-总结"><a href="#1-6-总结" class="headerlink" title="1.6 总结"></a>1.6 总结</h3><p>在计算机科学中，我们常常会碰到<code>时间换空间</code>或者<code>空间换时间</code>的情况，即**<code>为了达到某一个方面的最优而牺牲另一个方面</code>**。Bloom Filter在时间空间这两个因素之外又引入了另一个因素：错误率。在使用Bloom Filter判断一个元素是否属于某个集合时，会有一定的错误率。也就是说，有可能把不属于这个集合的元素误认为属于这个集合（False Positive），但不会把属于这个集合的元素误认为不属于这个集合（False Negative）。在增加了错误率这个因素之后，Bloom Filter通过允许少量的错误来节省大量的存储空间。</p>
+<script type="math/tex; mode=display">
+m\ge n\ \frac{log_2(1/\epsilon)}{ln 2}=n\ log_2e\cdot log_2(1/\epsilon)</script><p>这个结果比前面我们算得的下界$n log_2(1/є)$大了$log_2e \approx 1.44$倍。这说明在哈希函数的个数取到最优时，要让错误率不超过$є$，$m$至少需要取到最小值的$1.44$倍。</p>
+<h3 id="1-6-总结"><a href="#1-6-总结" class="headerlink" title="1.6 总结"></a>1.6 总结</h3><p>在计算机科学中，我们常常会碰到<code>时间换空间</code>或者<code>空间换时间</code>的情况，即<strong><code>为了达到某一个方面的最优而牺牲另一个方面</code></strong>。Bloom Filter在时间空间这两个因素之外又引入了另一个因素：错误率。在使用Bloom Filter判断一个元素是否属于某个集合时，会有一定的错误率。也就是说，有可能把不属于这个集合的元素误认为属于这个集合（False Positive），但不会把属于这个集合的元素误认为不属于这个集合（False Negative）。在增加了错误率这个因素之后，Bloom Filter通过允许少量的错误来节省大量的存储空间。</p>
 <p>自从Burton Bloom在70年代提出Bloom Filter之后，Bloom Filter就被广泛用于拼写检查和数据库系统中。近一二十年，伴随着网络的普及和发展，Bloom Filter在网络领域获得了新生，各种Bloom Filter变种和新的应用不断出现。可以预见，随着网络应用的不断深入，新的变种和应用将会继续出现，Bloom Filter必将获得更大的发展。</p>
 <h2 id="二、应用实例及算法实现"><a href="#二、应用实例及算法实现" class="headerlink" title="二、应用实例及算法实现"></a>二、应用实例及算法实现</h2><h3 id="2-1-实例"><a href="#2-1-实例" class="headerlink" title="2.1 实例"></a>2.1 实例</h3><p>为了说明Bloom Filter存在的重要意义，举一个实例：</p>
 <p>假设要你写一个网络蜘蛛（web crawler）。由于网络间的链接错综复杂，蜘蛛在网络间爬行很可能会形成“环”。为了避免形成“环”，就需要知道蜘蛛已经访问过那些URL。给一个URL，怎样知道蜘蛛是否已经访问过呢？稍微想想，就会有如下几种方案：</p>
@@ -273,7 +285,7 @@
 <h3 id="2-2-算法过程"><a href="#2-2-算法过程" class="headerlink" title="2.2 算法过程"></a>2.2 算法过程</h3><p>创建一个m位BitSet，先将所有位初始化为0，然后选择k个不同的哈希函数。第i个哈希函数对字符串str哈希的结果记为h（i，str），且h（i，str）的范围是0到m-1 。</p>
 <h4 id="2-2-1-加入字符串过程"><a href="#2-2-1-加入字符串过程" class="headerlink" title="2.2.1 加入字符串过程"></a>2.2.1 加入字符串过程</h4><p>下面是每个字符串处理的过程，首先是将字符串str“记录”到BitSet中的过程：</p>
 <p>对于字符串str，分别计算h（1，str），h（2，str）…… h（k，str）。然后将BitSet的第h（1，str）、h（2，str）…… h（k，str）位设为1。</p>
-<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/4.png?raw=true"></p>
+<p><img src="https://github.com/LystarmyNZT/pic/blob/main/bloomfilter/4.png?raw=true" alt=""></p>
 <p>很简单吧？这样就将字符串str映射到BitSet中的k个二进制位了。</p>
 <h4 id="2-2-2-过滤过程"><a href="#2-2-2-过滤过程" class="headerlink" title="2.2.2 过滤过程"></a>2.2.2 过滤过程</h4><p>下面是检查字符串str是否被BitSet记录过的过程：</p>
 <p>对于字符串str，分别计算h（1，str），h（2，str）…… h（k，str）。然后检查BitSet的第h（1，str）、h（2，str）…… h（k，str）位是否为1，若其中任何一位不为1则可以判定str一定没有被记录过。若全部位都是1，则“认为”字符串str存在。</p>
@@ -282,10 +294,9 @@
 <h4 id="2-2-3-删除字符串过程"><a href="#2-2-3-删除字符串过程" class="headerlink" title="2.2.3 删除字符串过程"></a>2.2.3 删除字符串过程</h4><p>字符串加入了就被不能删除了，因为删除会影响到其他字符串。实在需要删除字符串的可以使用Counting bloom filter(CBF)，这是一种基本Bloom Filter的变体，CBF将基本Bloom Filter每一个Bit改为一个计数器，这样就可以实现删除字符串的功能了。</p>
 <p>Bloom Filter跟单哈希函数Bit-Map不同之处在于：Bloom Filter使用了k个哈希函数，每个字符串跟k个bit对应。从而降低了冲突的概率。</p>
 <h3 id="2-3-参数选择"><a href="#2-3-参数选择" class="headerlink" title="2.3 参数选择"></a>2.3 参数选择</h3><h4 id="2-4-1-哈希函数选择"><a href="#2-4-1-哈希函数选择" class="headerlink" title="2.4.1 哈希函数选择"></a>2.4.1 哈希函数选择</h4><p>哈希函数的选择对性能的影响应该是很大的，一个好的哈希函数要能近似等概率的将字符串映射到各个Bit。选择k个不同的哈希函数比较麻烦，一种简单的方法是选择一个哈希函数，然后送入k个不同的参数。</p>
-<h4 id="2-4-2-Bit数组大小选择"><a href="#2-4-2-Bit数组大小选择" class="headerlink" title="2.4.2 Bit数组大小选择"></a>2.4.2 Bit数组大小选择</h4><p>哈希函数个数k、位数组大小m、加入的字符串数量n的关系可以参考(<a target="_blank" rel="noopener" href="http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html)%E3%80%82%E8%AF%A5%E6%96%87%E7%8C%AE%E8%AF%81%E6%98%8E%E4%BA%86%E5%AF%B9%E4%BA%8E%E7%BB%99%E5%AE%9A%E7%9A%84m%E3%80%81n%EF%BC%8C%E5%BD%93">http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html)。该文献证明了对于给定的m、n，当</a> k = ln(2)* m/n 时出错的概率是最小的。</p>
+<h4 id="2-4-2-Bit数组大小选择"><a href="#2-4-2-Bit数组大小选择" class="headerlink" title="2.4.2 Bit数组大小选择"></a>2.4.2 Bit数组大小选择</h4><p>哈希函数个数k、位数组大小m、加入的字符串数量n的关系可以参考(<a target="_blank" rel="noopener" href="http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html)。该文献证明了对于给定的m、n，当">http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html)。该文献证明了对于给定的m、n，当</a> k = ln(2)* m/n 时出错的概率是最小的。</p>
 <p>同时该文献还给出特定的k，m，n的出错概率。例如：根据参考文献1，哈希函数个数k取10，位数组大小m设为字符串个数n的20倍时，false positive发生的概率是0.0000889 ，这个概率基本能满足网络爬虫的需求了</p>
 <h3 id="2-4-实现"><a href="#2-4-实现" class="headerlink" title="2.4 实现"></a>2.4 实现</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BloomFilter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">BloomFilter</span>(<span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">uint32_t</span> valueCount)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">AbortAssert</span>(name != <span class="literal">NULL</span>);</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">uint32_t</span> bitCount = <span class="number">20</span>*valueCount;</span><br><span class="line">        m_MemSize = m_HeadSize + (bitCount/<span class="number">32</span>)*<span class="number">4</span> + <span class="number">4</span>;</span><br><span class="line">        m_MemAddr = (<span class="keyword">uint8_t</span>*)MemFile::<span class="built_in">Realloc</span>(name, m_MemSize);</span><br><span class="line">        <span class="built_in">AbortAssert</span>(m_MemAddr != <span class="literal">NULL</span>);</span><br><span class="line"> </span><br><span class="line">        m_HeadAddr = (FilterHead *)m_MemAddr;</span><br><span class="line">        m_FilterAddr = m_MemAddr + m_HeadSize;</span><br><span class="line"> </span><br><span class="line">        m_HeadAddr-&gt;m_ValueCount = valueCount;</span><br><span class="line">        m_HeadAddr-&gt;m_BitCount = bitCount;</span><br><span class="line">        <span class="built_in">strncpy</span>(m_HeadAddr-&gt;m_FilterName, name, <span class="built_in"><span class="keyword">sizeof</span></span>(m_HeadAddr-&gt;m_FilterName));</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">BloomFilter</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        MemFile::<span class="built_in">Release</span>(m_MemAddr, m_MemSize);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">Add</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *value, <span class="keyword">size_t</span> size)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">uint32_t</span> i = <span class="number">0</span>; i &lt; m_SeedCount; ++i) </span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">uint64_t</span> key = <span class="built_in">HashKey</span>(value, size, i);</span><br><span class="line">            <span class="keyword">uint32_t</span> key1 = (key &gt;&gt; <span class="number">32</span>) &amp; <span class="number">0xffffffff</span>;</span><br><span class="line">            <span class="keyword">uint32_t</span> key2 = key &amp; <span class="number">0xffffffff</span>;</span><br><span class="line">            <span class="built_in">SetBit</span>(key1 % m_HeadAddr-&gt;m_BitCount);</span><br><span class="line">            <span class="built_in">SetBit</span>(key2 % m_HeadAddr-&gt;m_BitCount);</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        ++(m_HeadAddr-&gt;m_AddCount);</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">Exist</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *value, <span class="keyword">size_t</span> size)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">uint32_t</span> i = <span class="number">0</span>; i &lt; m_SeedCount; ++i) </span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">uint64_t</span> key = <span class="built_in">HashKey</span>(value, size, i);</span><br><span class="line">            <span class="keyword">uint32_t</span> key1 = (key &gt;&gt; <span class="number">32</span>) &amp; <span class="number">0xffffffff</span>;</span><br><span class="line">            <span class="keyword">uint32_t</span> key2 = key &amp; <span class="number">0xffffffff</span>;</span><br><span class="line">    </span><br><span class="line">            <span class="keyword">if</span>(<span class="number">0</span> == <span class="built_in">GetBit</span>(key1 % m_HeadAddr-&gt;m_BitCount)) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    </span><br><span class="line">            <span class="keyword">if</span>(<span class="number">0</span> == <span class="built_in">GetBit</span>(key2 % m_HeadAddr-&gt;m_BitCount)) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">uint32_t</span> <span class="title">Count</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> m_HeadAddr-&gt;m_AddCount;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">uint32_t</span> m_SeedCount = <span class="number">6</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">uint32_t</span> m_HeadSize = <span class="number">1024</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">FilterHead</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">        <span class="keyword">uint32_t</span> m_ValueCount;</span><br><span class="line">        <span class="keyword">uint32_t</span> m_BitCount;</span><br><span class="line">        <span class="keyword">uint32_t</span> m_AddCount;</span><br><span class="line">        <span class="keyword">char</span>     m_FilterName[<span class="number">256</span>];</span><br><span class="line">    &#125;;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">uint32_t</span>    m_MemSize;</span><br><span class="line">    <span class="keyword">uint8_t</span>    *m_MemAddr;</span><br><span class="line">    FilterHead *m_HeadAddr;</span><br><span class="line">    <span class="keyword">uint8_t</span>    *m_FilterAddr;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">uint64_t</span> <span class="title">HashKey</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *value, <span class="keyword">size_t</span> size, <span class="keyword">uint32_t</span> index)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">uint64_t</span> hashSeed[m_SeedCount] = &#123;<span class="number">7</span>, <span class="number">11</span>, <span class="number">13</span>, <span class="number">19</span>, <span class="number">31</span>, <span class="number">37</span>&#125;;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">uint8_t</span> *tmp = (<span class="keyword">const</span> <span class="keyword">uint8_t</span> *)value;</span><br><span class="line">        <span class="keyword">uint64_t</span> key = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; size; ++i)</span><br><span class="line">        &#123;</span><br><span class="line">            key = key * hashSeed[index] + tmp[i];</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">return</span> key;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">SetBit</span><span class="params">(<span class="keyword">uint32_t</span> n)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        m_FilterAddr[n/<span class="number">8</span>] |= (<span class="number">1</span> &lt;&lt; (n%<span class="number">8</span>));</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">GetBit</span><span class="params">(<span class="keyword">uint32_t</span> n)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (m_FilterAddr[n/<span class="number">8</span>] &amp; (<span class="number">1</span>&lt;&lt;(n%<span class="number">8</span>)));</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Clear</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        m_HeadAddr-&gt;m_AddCount = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">memset</span>(m_FilterAddr, <span class="number">0</span>, m_HeadAddr-&gt;m_BitCount / <span class="number">32</span> * <span class="number">4</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="built_in">DISABLE_COPY_AND_ASSIGN</span>(BloomFilter);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
 <h2 id="资料来源"><a href="#资料来源" class="headerlink" title="资料来源"></a>资料来源</h2><p><em>[1] Bloom Filter概念和原理，<a target="_blank" rel="noopener" href="https://blog.csdn.net/jiaomeng/article/details/1495500">https://blog.csdn.net/jiaomeng/article/details/1495500</a></em></p>
 <p><em>[2] 海量数据处理——Bloom Filter C++代码实现，<a target="_blank" rel="noopener" href="https://blog.csdn.net/yuanmartin/article/details/108448177">https://blog.csdn.net/yuanmartin/article/details/108448177</a></em></p>
 
@@ -468,6 +479,61 @@
 
 
   
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
